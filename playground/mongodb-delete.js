@@ -7,17 +7,17 @@ MongoClient.connect('mongodb://localhost:27017/TodoApp', (err, client) => {
     console.log('Connected to MongdoDB Server')
 
     const db = client.db('TodoApp')
-    db.collection('Todos').find().count().then((docs) => {
-        console.log(docs)
+    db.collection('Users').findOneAndDelete({name: 'Wonmi'}).then((result) => {
+        console.log(result)
     }, (err) => {
         console.log('Failed to fetch docs')
     })
-   
-    db.collection('Users').find({name: 'Wonmi'}).toArray().then((docs) => {
-        console.log(docs)
-    }, (err) => {
-        console.log('Failed to fetch docs')
-    })
+
+    // db.collection('Users').find({ name: 'Wonmi' }).toArray().then((docs) => {
+    //     console.log(docs)
+    // }, (err) => {
+    //     console.log('Failed to fetch docs')
+    // })
 
     // client.close()
 })
