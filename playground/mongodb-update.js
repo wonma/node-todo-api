@@ -17,7 +17,7 @@ MongoClient.connect('mongodb://localhost:27017/TodoApp', (err, client) => {
     // }).then((result) => {
     //     console.log(result)
     // }, (err) => {
-    //     console.log('Failed to fetch docs')
+    //     console.log('Failed to fetch docs')  
     // })
     db.collection('Users').findOneAndUpdate({
         name: 'Joshua'
