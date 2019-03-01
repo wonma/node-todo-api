@@ -1,12 +1,16 @@
 const expect = require('expect')
 const request = require('supertest')
 
+const { ObjectID } = require('mongodb')
 const { Todo } = require('./../models/todo')
 const app = require('./../server').app
 
+
 const todos = [{
+    _id: new ObjectID(),
     text: 'First test todo'
 }, {    
+    _id: new ObjectID(),
     text: 'Second test todo'
 }]
 
@@ -19,9 +23,10 @@ beforeEach((done) => {
 
 })
 
+// POST /todo만 있었을 때 썼던 beforeEach
 // beforeEach((done) => {
 //     Todo.deleteMany({}).then(() => done())
-// })
+// }) 
 
 describe('POST /todo', () => {
     it('should create a new todo', (done) => {
@@ -70,9 +75,37 @@ describe('GET /todos', () => {
         request(app)
             .get('/todos')
             .expect(200)
-            .expect((res) => {
+            .expect((res) => {  // res.body는 array임
                 expect(res.body.todos.length).toBe(2)
             })
             .end(done)
     })
+})
+
+describe('GET /todos/:id', () => {
+    it('should get todo of matched id', (done) => {
+        request(app)
+            .get(`/todos/${todos[0]._id}`)
+            .expect(200)
+            .expect((res) => {
+                expect(res.body.todo._id).toBe(todos[0]._id.toHexString())
+            })
+            .end(done)
+    })
+
+    it('should receive 404 error with invalid id', (done) => {
+        request(app)
+            .get(`/todos/123`)
+            .expect(404)
+            .end(done)
+    })
+
+    it('should receive 404 error with no data found', (done) => {
+        const newTodoID = new ObjectID
+        request(app)
+            .get(`/todos/${newTodoID.toHexString()}`)
+            .expect(404)
+            .end(done)
+    })
+
 })
