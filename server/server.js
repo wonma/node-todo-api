@@ -1,5 +1,6 @@
 const express = require('express')
 const bodyParser = require('body-parser')
+const _ = require('lodash')
 
 const { ObjectId } = require('mongodb')
 const { mongoose } = require('./db/mongoose') // 이거 왜 써야하지??
@@ -73,8 +74,37 @@ app.delete('/todos/:id', (req, res) => {
     })
 })
 
-app.listen(port, () => {
-    console.log('Started Server')
+app.patch('/todos/:id', (req, res) => {
+    const id = req.params.id
+    if (!ObjectId.isValid(id)) {
+        return res.status(404).send('id is invalidddddd')
+    }
+
+    // pick props from req.body
+    const body = _.pick(req.body, ['text', 'completed'])  //안의 prop은 당연히 string으로 써줘야함
+    // update body object with 'completedAt' depending on 'completed'
+    if(_.isBoolean(body.completed) && body.completed) {
+        body.completedAt = new Date().getTime()
+    } else {
+        body.completed = false
+        body.completedAt = null
+    }
+
+    Todo.findByIdAndUpdate(id, {$set: body}, {new: true}).then((todo) => {
+        if(!todo) {
+            return res.status(404).send('todo not found')
+        }
+        res.send({todo})
+    }).catch((e) => {
+        res.status(400).send()
+    })
 })
+
+if (!module.parent) {
+    app.listen(port, () => {
+        console.log('Started Server')
+    })
+}
+
 
 module.exports = {app}

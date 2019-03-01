@@ -85,7 +85,7 @@ describe('GET /todos', () => {
 describe('GET /todos/:id', () => {
     it('should get todo of matched id', (done) => {
         request(app)
-            .get(`/todos/${todos[0]._id}`)
+            .get(`/todos/${todos[0]._id.toHexString()}`)
             .expect(200)
             .expect((res) => {
                 expect(res.body.todo._id).toBe(todos[0]._id.toHexString())
@@ -113,12 +113,20 @@ describe('GET /todos/:id', () => {
 describe('DELETE /todos/:id', () => {
     it('should delete todo of matched id', (done) => {
         request(app)
-            .delete(`/todos/${todos[0]._id}`)
+            .delete(`/todos/${todos[0]._id.toHexString()}`)
             .expect(200)
             .expect((res) => {
                 expect(res.body.todo._id).toBe(todos[0]._id.toHexString())
             })
-            .end(done)
+            .end((err, res) => {
+                if(err) {
+                    return done(err)
+                }
+                Todo.findById(todos[0]._id.toHexString()).then((todo) => {
+                    expect(todo).not.toBeTruthy()
+                    done()
+                }).catch((e) => done(e))
+            })
     })
 
     it('should receive 404 error with invalid id', (done) => {
