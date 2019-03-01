@@ -1,7 +1,8 @@
 const mongoose = require('mongoose')
 
 mongoose.Promise = global.Promise
-mongoose.connect(process.env.MONGODB_URI ||'mongodb://localhost:27017/TodoApp')
+mongoose.connect(process.env.MONGODB_ATLAS_URI ||'mongodb://localhost:27017/TodoApp',
+    { dbName: 'todos', userNewUrlParser:true })
 
 module.exports.mongoose = {mongoose}
 
