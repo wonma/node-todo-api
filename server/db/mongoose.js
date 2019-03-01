@@ -2,9 +2,9 @@ const mongoose = require('mongoose')
 
 mongoose.Promise = global.Promise
 mongoose.connect(process.env.MONGODB_ATLAS_URI ||'mongodb://localhost:27017/TodoApp',
-    { dbName: 'todos', userNewUrlParser:true })
+    { dbName: 'TodoApp', useNewUrlParser:true })
 
-module.exports.mongoose = {mongoose}
+module.exports = {mongoose}
 
 // // 다음 둘의 차이는?
 // module.exports = {

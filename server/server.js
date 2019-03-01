@@ -56,6 +56,23 @@ app.get('/todos/:id', (req, res) => {
 // res.send({todos})이렇게 {}로 담지 않으면, 후에 res.body.todos밖에 접근 못함
 // 미래에 혹시나 다른 prop에 접근 할 수 도 있으므로 오브젝트에 한 번 담아준거임
 
+app.delete('/todos/:id', (req, res) => {
+    const id = req.params.id
+    if (!ObjectId.isValid(id)) {
+        return res.status(404).send('id is invalidddddd')
+    }
+
+    Todo.findByIdAndDelete(id).then((todo) => {
+        if (!todo) {
+            res.status(404).send('hmm 404 error, ID not found')
+        }
+        res.send({ todo })
+    }).catch((e) => {
+        res.status(400).send('Bad request! Invalid ID')
+        // possible cause : server disconnection....
+    })
+})
+
 app.listen(port, () => {
     console.log('Started Server')
 })
