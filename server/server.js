@@ -10,7 +10,10 @@ const { mongoose } = require('./db/mongoose') // 이거 왜 써야하지??
 const { Todo } = require('./models/todo')
 const { User } = require('./models/user')
 
+const port = process.env.PORT || 3000
+
 const app = express()
+
 app.use(bodyParser.json())
 
 app.post('/todos',(req, res) => {
@@ -43,7 +46,7 @@ app.get('/todos/:id', (req, res) => {
         if (!todo) {
             res.status(404).send('hmm 404 error, ID not found')
         }
-        res.send(todo)
+        res.send({todo})
     }).catch((e) => {
         res.status(400).send('Bad request! Invalid ID')
         // possible cause : server disconnection....
@@ -53,7 +56,7 @@ app.get('/todos/:id', (req, res) => {
 // res.send({todos})이렇게 {}로 담지 않으면, 후에 res.body.todos밖에 접근 못함
 // 미래에 혹시나 다른 prop에 접근 할 수 도 있으므로 오브젝트에 한 번 담아준거임
 
-app.listen(3000, () => {
+app.listen(port, () => {
     console.log('Started Server')
 })
 
