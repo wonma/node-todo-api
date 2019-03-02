@@ -39,7 +39,7 @@ describe('POST /todo', () => {
             .send({text: inputText})
             .expect(200)
             .expect((res) => {
-                expect(res.body.text).toBe(inputText)
+                expect(res.body.text).toBe(inputText) // Line A
             })
             .end((err, res) => {
                 if(err) {
@@ -48,7 +48,7 @@ describe('POST /todo', () => {
                 
                 Todo.find({text: inputText}).then((todos) => {
                     expect(todos.length).toBe(1)
-                    expect(todos[0].text).toBe(inputText)
+                    expect(todos[0].text).toBe(inputText) // Line B
                     done()
                 }).catch((e) => done(e))
             })
@@ -164,16 +164,10 @@ describe('PATCH /todos/:id', () => {
             .expect(200)
             .expect((res) => {
                 expect(res.body.todo.text).toBe(body.text)
+                expect(res.body.todo.completed).toBeTruthy()
+                expect(res.body.todo.completedAt).not.toBeNaN() // 숫자타입임을 이렇게 체크하네
             })
-            .end((err, res) => {
-                if (err) {
-                    return done(err)
-                }
-                Todo.findById(todos[0]._id.toHexString()).then((todo) => {
-                    expect(todo.completed).toBeTruthy()
-                    done()
-                }).catch((e) => done(e))
-            })
+            .end(done)
     })
 
     it('should have false and null for completed for a todo of matched id', (done) => {
@@ -187,16 +181,9 @@ describe('PATCH /todos/:id', () => {
             .expect(200)
             .expect((res) => {
                 expect(res.body.todo.text).toBe(body.text)
+                expect(res.body.todo.completed).toBeFalsy()
+                expect(res.body.todo.completedAt).toBeNull()
             })
-            .end((err, res) => {
-                if (err) {
-                    return done(err)
-                }
-                Todo.findById(todos[1]._id.toHexString()).then((todo) => {
-                    expect(todo.completed).toBeFalsy()
-                    expect(todo.completedAt).toBeNull()
-                    done()
-                }).catch((e) => done(e))
-            })
+            .end(done)
     })
 })

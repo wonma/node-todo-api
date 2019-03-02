@@ -1,3 +1,5 @@
+const config = require('./config/config')
+
 const express = require('express')
 const bodyParser = require('body-parser')
 const _ = require('lodash')
@@ -8,10 +10,11 @@ const { mongoose } = require('./db/mongoose') // 이거 왜 써야하지??
 // 비록 mongoose.~~이런식으로 아래에 쓰이지 않았더라도 
 // '='의 오른쪽에서 필요한 작업을 모두 execution한 것임.
 
+
 const { Todo } = require('./models/todo')
 const { User } = require('./models/user')
 
-const port = process.env.PORT || 3000
+const port = process.env.PORT
 
 const app = express()
 
@@ -100,11 +103,7 @@ app.patch('/todos/:id', (req, res) => {
     })
 })
 
-if (!module.parent) {
-    app.listen(port, () => {
-        console.log('Started Server')
-    })
-}
-
-
+app.listen(port, () => {
+    console.log('Started Server')
+})
 module.exports = {app}

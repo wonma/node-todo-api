@@ -1,8 +1,16 @@
 const mongoose = require('mongoose')
 
+const env = process.env.NODE_ENV || 'development'
+let dbName;
+if (env === 'test') {
+    dbName = 'TodoAppTest'
+} else {
+    dbName = 'TodoApp'
+}
+
 mongoose.Promise = global.Promise
-mongoose.connect(process.env.MONGODB_ATLAS_URI ||'mongodb://localhost:27017/TodoApp',
-    { dbName: 'TodoApp', useNewUrlParser:true })
+mongoose.connect(process.env.MONGODB_ATLAS_URI,
+    { dbName: dbName, useNewUrlParser:true })
 
 module.exports = {mongoose}
 
