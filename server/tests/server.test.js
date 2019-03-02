@@ -11,7 +11,9 @@ const todos = [{
     text: 'First test todo'
 }, {    
     _id: new ObjectID(),
-    text: 'Second test todo'
+    text: 'Second test todo',
+    completed: true,
+    // completedAt: 123 // 이래도 되나?
 }]
 
 beforeEach((done) => {
@@ -144,4 +146,57 @@ describe('DELETE /todos/:id', () => {
             .end(done)
     })
 
+})
+
+
+
+describe('PATCH /todos/:id', () => {
+    it('should update todo of matched id', (done) => {
+        // const hexId = todos[0]._id.toHexString() 해도 되었음
+        // const text = 'Change to this' 이렇게 해도 되었음
+        const body = {
+            text: 'Change to this',
+            completed: true
+        }
+        request(app)
+            .patch(`/todos/${todos[0]._id.toHexString()}`)
+            .send(body)
+            .expect(200)
+            .expect((res) => {
+                expect(res.body.todo.text).toBe(body.text)
+            })
+            .end((err, res) => {
+                if (err) {
+                    return done(err)
+                }
+                Todo.findById(todos[0]._id.toHexString()).then((todo) => {
+                    expect(todo.completed).toBeTruthy()
+                    done()
+                }).catch((e) => done(e))
+            })
+    })
+
+    it('should have false and null for completed for a todo of matched id', (done) => {
+        const body = {
+            text: 'I want to live as I am',
+            completed: false // 유저가 넣는 정보는 이 두개일 것임
+        }                    // completedAt을 넣으면 안되는게, 그것은 유저가 넣는 정보가 아니기 때문
+        request(app)
+            .patch(`/todos/${todos[1]._id.toHexString()}`)
+            .send(body)
+            .expect(200)
+            .expect((res) => {
+                expect(res.body.todo.text).toBe(body.text)
+            })
+            .end((err, res) => {
+                if (err) {
+                    return done(err)
+                }
+                Todo.findById(todos[1]._id.toHexString()).then((todo) => {
+                    expect(todo.completed).toBeFalsy()
+                    expect(todo.completedAt).toBeNull()
+                    done()
+                }).catch((e) => done(e))
+            })
+    })
 })
