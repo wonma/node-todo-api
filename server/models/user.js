@@ -55,9 +55,9 @@ UserSchema.methods.generateAuthToken = function () {
 
     user.tokens = user.tokens.concat([{ access, token }])
 
-    return user.save().then(() => {
+    return user.save().then(() => { // tokens가 채워진 user obj이 db에 저장됨
         return token
-    })
+    }) // 결국 이 펑션 전체는 token값을 뱉어내는 Promise를 리턴함
 }
 
 UserSchema.statics.findByToken = function (token) {
@@ -78,6 +78,18 @@ UserSchema.statics.findByToken = function (token) {
     })
 }
 
+UserSchema.statics.findByCredentials = function (email, password) {
+    const User = this
+    return User.findOne({email}).then((user) => {
+        if (!user) {
+            return Promise.reject()
+        }
+        return bcrypt.compare(password, user.password).then((res) => {
+            return res ? user : Promise.reject()
+        })
+    })
+}
+
 UserSchema.pre('save', function (next) {
     const user = this
     if(user.isModified('password')) {
@@ -90,7 +102,6 @@ UserSchema.pre('save', function (next) {
     } else {
         next()
     }
-    
 })
 
 const User = mongoose.model('User', UserSchema)

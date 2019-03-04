@@ -3,6 +3,7 @@ const config = require('./config/config')
 const express = require('express')
 const bodyParser = require('body-parser')
 const _ = require('lodash')
+const bcrypt = require('bcryptjs')
 
 const { ObjectId } = require('mongodb')
 const { mongoose } = require('./db/mongoose') // 이거 왜 써야하지??
@@ -107,9 +108,9 @@ app.patch('/todos/:id', (req, res) => {
 app.post('/users', (req, res) => {
     const body = _.pick(req.body, ['name', 'email', 'password'])
     const user = new User(body)
-
+    // console.log(user) // 이 user는 _id, email, password있고 tokens 값만 [] 인 상태
     user.save().then(() => {  
-            return user.generateAuthToken()
+            return user.generateAuthToken()  // id + access + salt 조합으로 탄생, 값 뱉어내는 Promise임
         }).then((token) => {
             res.header('x-auth', token).send(user)
         }).catch((e) => {
@@ -117,9 +118,25 @@ app.post('/users', (req, res) => {
         })
 })
 
-app.get('/users/me', authenticate,(req, res) => {
-    res.send(req.user)
+// auth는 언제주어지는가? POST /users 일때, GET /users/login 일 때
+app.get('/users/me', authenticate,(req, res) => { // auth과정을 거쳐 해당 user를 찾아 받아옴
+    res.send(req.user)          // auth과정이란, 현재의 req.header에 실릭 auth값을 쥐고 users collection에서 찾는 것
+})  // middleware에서 보내 온 req에 추가하여 보내 온 user (주의, middleware에서도 req.body는 없었다)
+    // [unsolved] 왜 req.user만 보내고, req.token은 안보내지?
+
+app.post('/users/login', (req, res) => {
+    const body = _.pick(req.body, ['email', 'password'])
+    
+    User.findByCredentials(body.email, body.password).then((user) => {
+        return user.generateAuthToken().then((token) => {
+            res.header('x-auth', token).send(user)
+        })
+    })
+    .catch((e) => {
+        res.status(400).send('No user found')
+    })
 })
+
 
 app.listen(port, () => {
     console.log('Started Server')

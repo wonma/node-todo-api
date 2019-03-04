@@ -3,27 +3,12 @@ const request = require('supertest')
 
 const { ObjectID } = require('mongodb')
 const { Todo } = require('./../models/todo')
+const { User } = require('./../models/user')
 const app = require('./../server').app
+const { todos, seedTodos, users, seedUsers } = require('./seed/seed')
 
-
-const todos = [{
-    _id: new ObjectID(),
-    text: 'First test todo'
-}, {    
-    _id: new ObjectID(),
-    text: 'Second test todo',
-    completed: true,
-    // completedAt: 123 // 이래도 되나?
-}]
-
-beforeEach((done) => {
-    Todo.deleteMany({}).then(() => {
-        return Todo.insertMany(todos)  // insertMany는 array of docs 받아들이고
-    }).then(() => {                    // id정보를 담은 object를 리턴한다.
-        done()
-    })
-
-})
+beforeEach(seedUsers)
+beforeEach(seedTodos)
 
 // POST /todo만 있었을 때 썼던 beforeEach
 // beforeEach((done) => {
@@ -184,6 +169,63 @@ describe('PATCH /todos/:id', () => {
                 expect(res.body.todo.completed).toBeFalsy()
                 expect(res.body.todo.completedAt).toBeNull()
             })
+            .end(done)
+    })
+})
+
+describe('POST /users', () => {
+    it('should create a new user', (done) => {
+        const user = {
+            name: 'Shimkung',
+            email: 'shimkung@naver.com',
+            password: '123456'
+        }
+        request(app)
+            .post('/users')
+            .send(user)
+            .expect(200)
+            .expect((res) => {
+                expect(res.body).toHaveProperty('_id')
+                expect(res.body.name).toBe(user.name)
+                expect(res.headers).toHaveProperty('x-auth')
+            })
+            .end((err, res) => {
+                if (err) {
+                    return done(err)
+                }
+
+                User.findOne({email: user.email}).then((userInDB) => {
+                    expect(userInDB).not.toBeNull()
+                    expect(userInDB.password).not.toBe(user.password)
+                    done()
+                }).catch((e) => done(e))
+            })
+    })
+
+    it('should not create user if request is invalid', (done) => {
+        const wrongUser = {
+            name: 'Shimkung',
+            email: 'shimkungcom',
+            password: '12356'
+        }
+        request(app)
+            .post('/users')
+            .send(wrongUser)
+            .expect(400)
+            .end(done)
+    })
+
+
+    it('should not create user if the email alraedy exists', (done) => {
+        const wrongUser = {
+            name: 'Shimkung',
+            email: 'baboda@gmail.com',
+            password: '123456'
+        }
+        request(app)
+            .post('/users')
+            .send(wrongUser)
+            .expect(400)
             .end(done)
     })
 })
