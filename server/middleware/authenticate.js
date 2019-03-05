@@ -1,11 +1,12 @@
 const { User } = require('./../models/user')
 
+// 별건 아니고 header에 실린 x-auth 코드를 이용해 유저를 찾는 과정
 const authenticate = (req, res, next) => {
     const token = req.header('x-auth')
 
     User.findByToken(token).then((user) => {
         if (!user) {
-            Promise.reject()
+            return Promise.reject()
         }
         req.user = user
         req.token = token

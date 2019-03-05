@@ -42,7 +42,7 @@ const UserSchema = mongoose.Schema({
 UserSchema.methods.toJSON = function () {
     const user = this
     const userObject = user.toObject()
-    return _.pick(userObject, ['_id', 'name'])
+    return _.pick(userObject, ['_id', 'email'])
 }
 
 UserSchema.methods.generateAuthToken = function () {
@@ -68,7 +68,7 @@ UserSchema.statics.findByToken = function (token) {
     try {
         decoded = jwt.verify(token, 'abc123')
     } catch (e) {
-        Promise.reject()
+        return Promise.reject()
     }
 
     return User.findOne({

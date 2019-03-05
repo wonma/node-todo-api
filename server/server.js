@@ -5,7 +5,7 @@ const bodyParser = require('body-parser')
 const _ = require('lodash')
 const bcrypt = require('bcryptjs')
 
-const { ObjectId } = require('mongodb')
+const { ObjectID } = require('mongodb')
 const { mongoose } = require('./db/mongoose') // 이거 왜 써야하지??
 // mongoose.js에서 connection했던 내용들 다 들고와서 오른쪽에서 resolve 됨.
 // 비록 mongoose.~~이런식으로 아래에 쓰이지 않았더라도 
@@ -44,13 +44,13 @@ app.get('/todos', (req, res) => {
 
 app.get('/todos/:id', (req, res) => {
     const id = req.params.id
-    if (!ObjectId.isValid(id)) {
+    if (!ObjectID.isValid(id)) {
         return res.status(404).send('id is invalidddddd')
     } 
 
     Todo.findById(id).then((todo) => {
         if (!todo) {
-            res.status(404).send('hmm 404 error, ID not found')
+            return res.status(404).send('hmm 404 error, ID not found')
         }
         res.send({todo})
     }).catch((e) => {
@@ -64,13 +64,13 @@ app.get('/todos/:id', (req, res) => {
 
 app.delete('/todos/:id', (req, res) => {
     const id = req.params.id
-    if (!ObjectId.isValid(id)) {
+    if (!ObjectID.isValid(id)) {
         return res.status(404).send('id is invalidddddd')
     }
 
     Todo.findByIdAndDelete(id).then((todo) => {
         if (!todo) {
-            res.status(404).send('hmm 404 error, ID not found')
+            return res.status(404).send('hmm 404 error, ID not found')
         }
         res.send({ todo })
     }).catch((e) => {
@@ -81,7 +81,7 @@ app.delete('/todos/:id', (req, res) => {
 
 app.patch('/todos/:id', (req, res) => {
     const id = req.params.id
-    if (!ObjectId.isValid(id)) {
+    if (!ObjectID.isValid(id)) {
         return res.status(404).send('id is invalidddddd')
     }
 
@@ -121,12 +121,13 @@ app.post('/users', (req, res) => {
 // auth는 언제주어지는가? POST /users 일때, GET /users/login 일 때
 app.get('/users/me', authenticate,(req, res) => { // auth과정을 거쳐 해당 user를 찾아 받아옴
     res.send(req.user)          // auth과정이란, 현재의 req.header에 실릭 auth값을 쥐고 users collection에서 찾는 것
-})  // middleware에서 보내 온 req에 추가하여 보내 온 user (주의, middleware에서도 req.body는 없었다)
-    // [unsolved] 왜 req.user만 보내고, req.token은 안보내지?
+})
+
+// middleware에서 보내 온 req에 추가하여 보내 온 user (주의, middleware에서도 req.body는 없었다)
+// [unsolved] 왜 req.user만 보내고, req.token은 안보내지?
 
 app.post('/users/login', (req, res) => {
     const body = _.pick(req.body, ['email', 'password'])
-    
     User.findByCredentials(body.email, body.password).then((user) => {
         return user.generateAuthToken().then((token) => {
             res.header('x-auth', token).send(user)

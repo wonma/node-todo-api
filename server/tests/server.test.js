@@ -137,8 +137,6 @@ describe('DELETE /todos/:id', () => {
 
 describe('PATCH /todos/:id', () => {
     it('should update todo of matched id', (done) => {
-        // const hexId = todos[0]._id.toHexString() 해도 되었음
-        // const text = 'Change to this' 이렇게 해도 되었음
         const body = {
             text: 'Change to this',
             completed: true
@@ -173,6 +171,30 @@ describe('PATCH /todos/:id', () => {
     })
 })
 
+describe('GET /users/me', () => {
+    it('should return user if authenticated', (done) => {
+        request(app)
+            .get('/users/me')
+            .set('x-auth', users[0].tokens[0].token)
+            .expect(200)
+            .expect((res) => {
+                expect(res.body._id).toBe(users[0]._id.toHexString())
+                expect(res.body.email).toBe(users[0].email)
+            })
+            .end(done)
+    })
+
+    it('should return 401 if not authenticated', (done) => {
+        request(app)
+            .get('/users/me')
+            .expect(401)
+            .expect((res) => {
+                expect(res.body).toEqual({})
+            })
+            .end(done)
+    })
+})
+
 describe('POST /users', () => {
     it('should create a new user', (done) => {
         const user = {
@@ -186,7 +208,7 @@ describe('POST /users', () => {
             .expect(200)
             .expect((res) => {
                 expect(res.body).toHaveProperty('_id')
-                expect(res.body.name).toBe(user.name)
+                expect(res.body.email).toBe(user.email)
                 expect(res.headers).toHaveProperty('x-auth')
             })
             .end((err, res) => {
@@ -227,5 +249,52 @@ describe('POST /users', () => {
             .send(wrongUser)
             .expect(400)
             .end(done)
+    })
+})
+
+describe('POST /users/login', () => {  //로그인하는 행위 =  user오브젝트, auth를 받아오기?
+    it('should login user and return auth token', (done) => {
+        request(app)
+            .post('/users/login')
+            .send({
+                email:users[1].email,
+                password:users[1].password
+            })
+            .expect(200)
+            .expect((res) => {
+                expect(res.body.email).toBe(users[1].email)
+                expect(res.headers).toHaveProperty('x-auth')
+            })
+            .end((err, res) => {
+                if(err) {
+                    return done(err)
+                }
+                User.findById(users[1]._id).then((user) => {
+                    expect(user.tokens[0]).toMatchObject({access:'auth', token:res.headers['x-auth']})
+                    done()
+                }).catch((e) => done(e))
+            })
+    })
+
+    it('should reject invalid login', (done) => {
+        request(app)
+            .post('/users/login')
+            .send({
+                email: users[1].email,
+                password: users[1].password + 1
+            })
+            .expect(400)
+            .expect((res) => {
+                expect(res.headers).not.toHaveProperty('x-auth')
+            })
+            .end((err, res) => {
+                if (err) {
+                    return done(err)
+                }
+                User.findById(users[1]._id).then((user) => {
+                    expect(user.tokens).toHaveLength(0)
+                    done()
+                }).catch((e) => done(e))
+            })
     })
 })
