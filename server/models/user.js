@@ -60,6 +60,16 @@ UserSchema.methods.generateAuthToken = function () {
     }) // 결국 이 펑션 전체는 token값을 뱉어내는 Promise를 리턴함
 }
 
+UserSchema.methods.removeToken = function (token) {
+    const user = this
+    // $pull: 기준을 충족하는 것을 array로부터 없애줌
+    return user.update({
+        $pull: {
+            tokens: {token}
+        }
+    })
+}
+
 UserSchema.statics.findByToken = function (token) {
 
     const User = this
