@@ -62,7 +62,6 @@ UserSchema.methods.generateAuthToken = function () {
 
 UserSchema.methods.removeToken = function (token) {
     const user = this
-    // $pull: 기준을 충족하는 것을 array로부터 없애줌
     return user.update({
         $pull: {
             tokens: {token}
